@@ -11,6 +11,7 @@
 #include "hardware/spi.h"
 #include "MFRC522.h"
 #include "rfid.h"
+#include "oled.h"
 
 // Custom libraries
 #define RST_PIN 0// Pin 9 para el reset del RC522
@@ -28,6 +29,7 @@ int main() {
     // Initialize standard I/O
     stdio_init_all();
     sleep_ms(7000);
+    initialize_display_and_render_text();
      // Print initialization message
     printf("Probando RFID\n");
     MFRC522Ptr_t mfrc522 = MFRC522_Init(); // Inicializa el MFRC522
