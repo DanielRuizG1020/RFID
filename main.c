@@ -76,7 +76,7 @@ int main() {
                 break;
         }
 
-        tight_loop_contents(); // Esto asegura que el bucle sea lo más eficiente posible
+        tight_loop_contents(); 
     }
 
     return 0;
