@@ -22,5 +22,7 @@ void readBlock(MFRC522Ptr_t mfrc,uint8_t block,uint8_t bufferRead[18]);
  * @return void
  */
 void writeBlock(MFRC522Ptr_t mfrc, uint8_t block, uint8_t bufferWrite[16]);
+bool compareUIDs(const uint8_t *uid, size_t uidLength, const uint8_t *expectedUID, size_t expectedUIDLength);
+bool read_card_id(MFRC522Ptr_t mfrc);
 
 #endif

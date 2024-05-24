@@ -9,6 +9,8 @@
 #ifndef _MAIN_H_
 #define _MAIN_H_
 
+
+void timer_display_handler(void);
 // Write your definitions and other macros here
 
 #endif

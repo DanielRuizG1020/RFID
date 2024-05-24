@@ -39,7 +39,7 @@
 
 // 400 is usual, but often these can be overclocked to improve display response.
 // Tested at 1000 on both 32 and 84 pixel height devices and it worked.
-#define SSD1306_I2C_CLK             400
+#define SSD1306_I2C_CLK             1000
 //#define SSD1306_I2C_CLK             1000
 
 
@@ -77,7 +77,6 @@
 
 #define SSD1306_WRITE_MODE         _u(0xFE)
 #define SSD1306_READ_MODE          _u(0xFF)
-void initialize_display_and_render_text();
 
 static uint8_t font[] = {
 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // Nothing
@@ -119,7 +118,8 @@ static uint8_t font[] = {
 0x60, 0x90, 0x90, 0x90, 0x90, 0x90, 0xfe, 0x00,  //9
 };
 
-
+/**brief Estructura que define un área de renderizado
+ */
 struct render_area {
     uint8_t start_col;
     uint8_t end_col;
@@ -129,12 +129,23 @@ struct render_area {
     int buflen;
 };
 
+/**brief: Funcion que calcula el tamaño del buffer de renderizado
+ * 
+ * @param area: Puntero a la estructura render_area
+ * 
+ * @return void
+ */
 void calc_render_area_buflen(struct render_area *area) {
     // calculate how long the flattened buffer will be for a render area
     area->buflen = (area->end_col - area->start_col + 1) * (area->end_page - area->start_page + 1);
 }
 
-
+/**brief: Funcion que envia un comando al display
+ * 
+ * @param cmd: Comando a enviar
+ * 
+ * @return void
+ */
 void SSD1306_send_cmd(uint8_t cmd) {
     // I2C write process expects a control byte followed by data
     // this "data" can be a command or data to follow up a command
@@ -143,11 +154,25 @@ void SSD1306_send_cmd(uint8_t cmd) {
     i2c_write_blocking(i2c_default, SSD1306_I2C_ADDR, buf, 2, false);
 }
 
+/**brief: Funcion que envia una lista de comandos al display
+ * 
+ * @param buf: Buffer con los comandos a enviar
+ * @param num: Numero de comandos a enviar
+ * 
+ * @return void
+ */
 void SSD1306_send_cmd_list(uint8_t *buf, int num) {
     for (int i=0;i<num;i++)
         SSD1306_send_cmd(buf[i]);
 }
 
+/**brief: Funcion que envia un buffer al display
+ * 
+ * @param buf: Buffer a enviar
+ * @param buflen: Longitud del buffer
+ * 
+ * @return void
+ */
 void SSD1306_send_buf(uint8_t buf[], int buflen) {
     // in horizontal addressing mode, the column address pointer auto-increments
     // and then wraps around to the next page, so we can send the entire frame
@@ -165,7 +190,12 @@ void SSD1306_send_buf(uint8_t buf[], int buflen) {
 
     free(temp_buf);
 }
-
+/**brief: Funcion que inicializa el display OLED
+ * 
+ * @param void
+ * 
+ * @return void
+ */ 
 void SSD1306_init() {
     // Some of these commands are not strictly necessary as the reset
     // process defaults to some of these but they are shown here
@@ -214,7 +244,12 @@ void SSD1306_init() {
 
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
-
+/**brief: Funcion que activa o desactiva el scroll en el display
+ * 
+ * @param on: Booleano que indica si se activa o desactiva el scroll
+ * 
+ * @return void
+ */
 void SSD1306_scroll(bool on) {
     // configure horizontal scrolling
     uint8_t cmds[] = {
@@ -230,7 +265,13 @@ void SSD1306_scroll(bool on) {
 
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
-
+/**brief: Funcion que renderiza un area en el display
+ * 
+ * @param buf: Buffer a renderizar
+ * @param area: Puntero a la estructura render_area
+ * 
+ * @return void
+ */
 void render(uint8_t *buf, struct render_area *area) {
     // update a portion of the display with a render area
     uint8_t cmds[] = {
@@ -245,7 +286,13 @@ void render(uint8_t *buf, struct render_area *area) {
     SSD1306_send_cmd_list(cmds, count_of(cmds));
     SSD1306_send_buf(buf, area->buflen);
 }
-
+/**brief: Funcion que limpia un area en el display
+ * 
+ * @param buf: Buffer a limpiar
+ * @param area: Puntero a la estructura render_area
+ * 
+ * @return void
+ */
 static void SetPixel(uint8_t *buf, int x,int y, bool on) {
     assert(x >= 0 && x < SSD1306_WIDTH && y >=0 && y < SSD1306_HEIGHT);
 
@@ -271,7 +318,17 @@ static void SetPixel(uint8_t *buf, int x,int y, bool on) {
 
     buf[byte_idx] = byte;
 }
-// Basic Bresenhams.
+/**brief: Funcion que dibuja una linea en el display
+ * 
+ * @param buf: Buffer donde se dibuja la linea
+ * @param x0: Coordenada x del punto inicial
+ * @param y0: Coordenada y del punto inicial
+ * @param x1: Coordenada x del punto final
+ * @param y1: Coordenada y del punto final
+ * @param on: Booleano que indica si se enciende o apaga el pixel
+ * 
+ * @return void
+ */
 static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on) {
 
     int dx =  abs(x1-x0);
@@ -297,7 +354,6 @@ static void DrawLine(uint8_t *buf, int x0, int y0, int x1, int y1, bool on) {
         }
     }
 }
-
 static inline int GetFontIndex(uint8_t ch) {
     if (ch >= 'A' && ch <='Z') {
         return  ch - 'A' + 1;
@@ -316,12 +372,26 @@ static uint8_t reverse(uint8_t b) {
    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
    return b;
 }
+/**brief: Funcion que llena el cache de la fuente invertida
+ * 
+ * @param void
+ * 
+ * @return void
+ */
 static void FillReversedCache() {
     // calculate and cache a reversed version of fhe font, because I defined it upside down...doh!
     for (int i=0;i<sizeof(font);i++)
         reversed[i] = reverse(font[i]);
 }
-
+/**brief: Funcion que escribe un caracter en el display
+ * 
+ * @param buf: Buffer donde se escribe el caracter
+ * @param x: Coordenada x del caracter
+ * @param y: Coordenada y del caracter
+ * @param ch: Caracter a escribir
+ * 
+ * @return void
+ */
 static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch) {
     if (reversed[0] == 0) 
         FillReversedCache();
@@ -340,7 +410,15 @@ static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch) {
         buf[fb_idx++] = reversed[idx * 8 + i];
     }
 }
-
+/**brief: Funcion que escribe una cadena en el display
+ * 
+ * @param buf: Buffer donde se escribe la cadena
+ * @param x: Coordenada x de la cadena
+ * @param y: Coordenada y de la cadena
+ * @param str: Cadena a escribir
+ * 
+ * @return void
+ */
 static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str) {
     // Cull out any string off the screen
     if (x > SSD1306_WIDTH - 8 || y > SSD1306_HEIGHT - 8)
@@ -352,7 +430,12 @@ static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str) {
     }
 }
 
-
+/**brief: Funcion que inicializa la pantalla OLED y escribe texto en ella
+ * 
+ * @param void
+ * 
+ * @return void
+ */
 void initialize_display_and_render_text() {
     // Inicializar la pantalla OLED
     i2c_init(i2c_default, SSD1306_I2C_CLK * 1000);
@@ -377,12 +460,54 @@ void initialize_display_and_render_text() {
     render(buf, &frame_area);
 
     // Escribir en la pantalla
-    WriteString(buf, 2, 0, "Donpe"); // Primera línea
-    WriteString(buf, 2, 16, "Donpe"); // Segunda línea (offset vertical de 16)
+    WriteString(buf, 2, 0, "Hola mundo"); // Primera línea
+    WriteString(buf, 2, 16, "Hola mundo"); // Segunda línea (offset vertical de 16)
     WriteString(buf, 2, 32, "Hola, mundo"); // Tercera línea (offset vertical de 32)
     WriteString(buf, 2, 48, "Hola, mundo"); // Cuarta línea (offset vertical de 48)
     render(buf, &frame_area);
 }
+
+
+void update_display(const char *line1, const char *line2, const char *line3, const char *line4) {
+    // Inicializar la pantalla OLED si no se ha hecho ya
+    static bool is_initialized = false;
+    if (!is_initialized) {
+        i2c_init(i2c_default, SSD1306_I2C_CLK * 1000);
+        gpio_set_function(20, GPIO_FUNC_I2C);
+        gpio_set_function(21, GPIO_FUNC_I2C);
+        gpio_pull_up(20);
+        gpio_pull_up(21);
+        SSD1306_init();
+        is_initialized = true;
+    }
+
+    // Área de renderizado para todo el frame
+    struct render_area frame_area = {
+        .start_col = 0,
+        .end_col = SSD1306_WIDTH - 1,
+        .start_page = 0,
+        .end_page = SSD1306_NUM_PAGES - 1
+    };
+    calc_render_area_buflen(&frame_area);
+
+    // Limpiar la pantalla
+    uint8_t buf[SSD1306_BUF_LEN];
+    memset(buf, 0, SSD1306_BUF_LEN);
+    render(buf, &frame_area);
+
+    // Escribir en la pantalla
+    if (line1) WriteString(buf, 2, 0, (char *)line1);
+    if (line2) WriteString(buf, 2, 16, (char *)line2);
+    if (line3) WriteString(buf, 2, 32, (char *)line3);
+    if (line4) WriteString(buf, 2, 48, (char *)line4);
+    
+    // Renderizar el buffer actualizado
+    render(buf, &frame_area);
+}
+
+
+
+
 
 
 #endif

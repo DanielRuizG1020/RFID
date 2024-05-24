@@ -14,19 +14,20 @@ add_executable(Gestion_Inventario
     main.c
     mfrc522.c
     rfid.c
+    keypad.c
 )
 
 # pico_stdlib library. You can add more if they are needed
 target_link_libraries(Gestion_Inventario
     pico_stdlib
+    pico_time
     hardware_spi
     hardware_gpio
     hardware_i2c
     hardware_timer
     hardware_irq
-    hardware_clocks
-    hardware_watchdog
     hardware_sync
+    hardware_clocks
     hardware_pwm)
 
 # Enable usb output, disable uart output
