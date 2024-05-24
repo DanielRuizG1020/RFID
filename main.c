@@ -90,13 +90,13 @@ void timer_display_handler(void){
      // Setting the IRQ handler
     irq_set_exclusive_handler(TIMER_IRQ_1, timer_display_handler);
     irq_set_enabled(TIMER_IRQ_1, true);
-    hw_set_bits(&timer_hw->inte, 1u << TIMER_IRQ_1); ///< habilitar la alarma0 para la secuencia
+    hw_set_bits(&timer_hw->inte, 1u << TIMER_IRQ_1); 
     if(state != 2){
     timer_hw->alarm[1] = (uint32_t)(time_us_64() + 1000000);
-    initialize_display_and_render_text();  ///< establecer la alarma0 para que se active en 2ms
+    initialize_display_and_render_text(); 
     }
     else{
-        update_display("Secuencia 1", "Secuencia 2", "Secuencia 3", "Secuencia 4");
+        update_display("Producto", "Cantidad", "PrecioCompra", "PrecioVenta");
     }
       
 }
