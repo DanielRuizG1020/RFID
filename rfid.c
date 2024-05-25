@@ -25,19 +25,19 @@ void readBlock(MFRC522Ptr_t mfrc,uint8_t block,uint8_t bufferRead[18]){
     PICC_ReadCardSerial(mfrc);
     printf("Reconocida\n\r");
     if(PCD_Authenticate(mfrc,PICC_CMD_MF_AUTH_KEY_A,block,&keyBlock, &(mfrc->uid))==0){
-        printf("Authentication Sabrosa\n\r");
+        printf("Authentication Exitosa\n\r");
         if(MIFARE_Read(mfrc,block,bufferRead,&len)==0){
-            printf("leida bloque Sabroso\n\r");
+            printf("Lectura de Bloque Exitosa\n\r");
            for (int i = 0; i < 16; i++) {
                 printf("%u ", bufferRead[i]);
             }
            PCD_StopCrypto1(mfrc);
            printf( "\n");
         }else{
-        printf("Leida de bloque failed: \n\r");
+        printf("Leida de bloque Fallida: \n\r");
         }
     }else{
-        printf("Authentication failed: \n\r");
+        printf("Authentication Failed: \n\r");
 }
 }
 
@@ -50,9 +50,9 @@ void writeBlock(MFRC522Ptr_t mfrc, uint8_t block, uint8_t bufferWrite[16]) {
     PICC_ReadCardSerial(mfrc);
     printf("Reconocida\n\r");
     if (PCD_Authenticate(mfrc, PICC_CMD_MF_AUTH_KEY_A, block, &keyBlock, &(mfrc->uid)) == 0) {
-        printf("Autenticación Sabrosa\n\r");
+        printf("Autenticación Exitosa\n\r");
         if (MIFARE_Write(mfrc, block, bufferWrite, len) == 0) {
-            printf("Bloque escrito Sabroso\n\r");
+            printf("Bloque escrito \n\r");
             PCD_StopCrypto1(mfrc);
         } else {
             printf("Error al escribir el bloque\n\r");
@@ -61,6 +61,8 @@ void writeBlock(MFRC522Ptr_t mfrc, uint8_t block, uint8_t bufferWrite[16]) {
         printf("Error en la autenticación\n\r");
     }
 }
+
+
 
 
 bool compareUIDs(const uint8_t *uid, size_t uidLength, const uint8_t *expectedUID, size_t expectedUIDLength) {
@@ -78,8 +80,8 @@ bool compareUIDs(const uint8_t *uid, size_t uidLength, const uint8_t *expectedUI
 }
 
 
+
 bool read_card_id(MFRC522Ptr_t mfrc) {
-    printf("Probando id\n\r");
     while (!PICC_IsNewCardPresent(mfrc));
     PICC_ReadCardSerial(mfrc);
     /*printf("Card UID: ");
@@ -92,9 +94,9 @@ bool read_card_id(MFRC522Ptr_t mfrc) {
     printf("\n");*/
     bool isExpectedUID = compareUIDs(mfrc->uid.uidByte, mfrc->uid.size, expectedUID, expectedUIDLength);
     if (isExpectedUID) {
-        printf("UID correcto\n\r");
+        printf("UID Correcto\n\r");
     } else {
-        printf("UID incorrecto\n\r");
+        printf("UID Incorrecto\n\r");
     }
     PCD_StopCrypto1(mfrc); // Stop encryption on PCD
     return isExpectedUID;

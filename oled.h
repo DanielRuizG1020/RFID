@@ -118,7 +118,8 @@ static uint8_t font[] = {
 0x60, 0x90, 0x90, 0x90, 0x90, 0x90, 0xfe, 0x00,  //9
 };
 
-/**brief Estructura que define un área de renderizado
+/**
+ * @brief Estructura que define un área de renderizado
  */
 struct render_area {
     uint8_t start_col;
@@ -129,7 +130,8 @@ struct render_area {
     int buflen;
 };
 
-/**brief: Funcion que calcula el tamaño del buffer de renderizado
+/**
+ * @brief: Funcion que calcula el tamaño del buffer de renderizado
  * 
  * @param area: Puntero a la estructura render_area
  * 
@@ -140,7 +142,8 @@ void calc_render_area_buflen(struct render_area *area) {
     area->buflen = (area->end_col - area->start_col + 1) * (area->end_page - area->start_page + 1);
 }
 
-/**brief: Funcion que envia un comando al display
+/**
+ * @brief: Funcion que envia un comando al display
  * 
  * @param cmd: Comando a enviar
  * 
@@ -154,7 +157,8 @@ void SSD1306_send_cmd(uint8_t cmd) {
     i2c_write_blocking(i2c_default, SSD1306_I2C_ADDR, buf, 2, false);
 }
 
-/**brief: Funcion que envia una lista de comandos al display
+/**
+ * @brief: Funcion que envia una lista de comandos al display
  * 
  * @param buf: Buffer con los comandos a enviar
  * @param num: Numero de comandos a enviar
@@ -166,7 +170,8 @@ void SSD1306_send_cmd_list(uint8_t *buf, int num) {
         SSD1306_send_cmd(buf[i]);
 }
 
-/**brief: Funcion que envia un buffer al display
+/**
+ * @brief: Funcion que envia un buffer al display
  * 
  * @param buf: Buffer a enviar
  * @param buflen: Longitud del buffer
@@ -190,7 +195,8 @@ void SSD1306_send_buf(uint8_t buf[], int buflen) {
 
     free(temp_buf);
 }
-/**brief: Funcion que inicializa el display OLED
+/**
+ * @brief: Funcion que inicializa el display OLED
  * 
  * @param void
  * 
@@ -244,7 +250,8 @@ void SSD1306_init() {
 
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
-/**brief: Funcion que activa o desactiva el scroll en el display
+/**
+ * @brief: Funcion que activa o desactiva el scroll en el display
  * 
  * @param on: Booleano que indica si se activa o desactiva el scroll
  * 
@@ -265,7 +272,8 @@ void SSD1306_scroll(bool on) {
 
     SSD1306_send_cmd_list(cmds, count_of(cmds));
 }
-/**brief: Funcion que renderiza un area en el display
+/**
+ * @brief: Funcion que renderiza un area en el display
  * 
  * @param buf: Buffer a renderizar
  * @param area: Puntero a la estructura render_area
@@ -286,7 +294,8 @@ void render(uint8_t *buf, struct render_area *area) {
     SSD1306_send_cmd_list(cmds, count_of(cmds));
     SSD1306_send_buf(buf, area->buflen);
 }
-/**brief: Funcion que limpia un area en el display
+/**
+ * @brief: Funcion que limpia un area en el display
  * 
  * @param buf: Buffer a limpiar
  * @param area: Puntero a la estructura render_area
@@ -318,7 +327,8 @@ static void SetPixel(uint8_t *buf, int x,int y, bool on) {
 
     buf[byte_idx] = byte;
 }
-/**brief: Funcion que dibuja una linea en el display
+/**
+ * @brief: Funcion que dibuja una linea en el display
  * 
  * @param buf: Buffer donde se dibuja la linea
  * @param x0: Coordenada x del punto inicial
@@ -372,7 +382,8 @@ static uint8_t reverse(uint8_t b) {
    b = (b & 0xAA) >> 1 | (b & 0x55) << 1;
    return b;
 }
-/**brief: Funcion que llena el cache de la fuente invertida
+/**
+ * @brief: Funcion que llena el cache de la fuente invertida
  * 
  * @param void
  * 
@@ -383,7 +394,8 @@ static void FillReversedCache() {
     for (int i=0;i<sizeof(font);i++)
         reversed[i] = reverse(font[i]);
 }
-/**brief: Funcion que escribe un caracter en el display
+/**
+ * @brief: Funcion que escribe un caracter en el display
  * 
  * @param buf: Buffer donde se escribe el caracter
  * @param x: Coordenada x del caracter
@@ -410,7 +422,8 @@ static void WriteChar(uint8_t *buf, int16_t x, int16_t y, uint8_t ch) {
         buf[fb_idx++] = reversed[idx * 8 + i];
     }
 }
-/**brief: Funcion que escribe una cadena en el display
+/**
+ * @brief: Funcion que escribe una cadena en el display
  * 
  * @param buf: Buffer donde se escribe la cadena
  * @param x: Coordenada x de la cadena
@@ -430,7 +443,12 @@ static void WriteString(uint8_t *buf, int16_t x, int16_t y, char *str) {
     }
 }
 
-/**brief: Funcion que inicializa la pantalla OLED y escribe texto en ella
+/**
+ * @brief Inicializa la pantalla OLED y escribe texto en ella.
+ * 
+ * Esta función configura la comunicación I2C para la pantalla OLED, inicializa 
+ * la pantalla, define el área de renderizado y escribe cuatro líneas de texto 
+ * en la pantalla.
  * 
  * @param void
  * 
@@ -467,6 +485,20 @@ void initialize_display_and_render_text() {
     render(buf, &frame_area);
 }
 
+/**
+ * @brief Actualiza la pantalla OLED con las líneas de texto proporcionadas.
+ * 
+ * Esta función inicializa la pantalla OLED si no se ha hecho ya, define el área 
+ * de renderizado, limpia la pantalla y escribe las líneas de texto especificadas 
+ * en la pantalla.
+ * 
+ * @param line1 La cadena de texto a mostrar en la primera línea.
+ * @param line2 La cadena de texto a mostrar en la segunda línea.
+ * @param line3 La cadena de texto a mostrar en la tercera línea.
+ * @param line4 La cadena de texto a mostrar en la cuarta línea.
+ * 
+ * @return void
+ */
 
 void update_display(const char *line1, const char *line2, const char *line3, const char *line4) {
     // Inicializar la pantalla OLED si no se ha hecho ya
@@ -505,23 +537,53 @@ void update_display(const char *line1, const char *line2, const char *line3, con
     render(buf, &frame_area);
 }
 
-void show_current_inventory(uint8_t num_productos1, uint8_t num_productos2, uint8_t num_productos3, uint8_t num_productos4) {
+/**
+ * @brief Muestra el inventario actual en la pantalla OLED.
+ * 
+ * Esta función convierte los números de inventario y las estadísticas de ventas 
+ * en cadenas de texto y las muestra en la pantalla OLED utilizando la función update_display.
+ * 
+ * @param num_productos1 Cantidad del primer producto.
+ * @param num_productos2 Cantidad del segundo producto.
+ * @param num_productos3 Cantidad del tercer producto.
+ * @param num_productos4 Cantidad del cuarto producto.
+ * @param num_productos5 Cantidad del quinto producto.
+ * @param total_sales Número total de ventas.
+ * @param cash_total Total de dinero en efectivo.
+ * 
+ * @return void
+ */
+void show_current_inventory(uint8_t num_productos1, uint8_t num_productos2, uint8_t num_productos3, uint8_t num_productos4, uint8_t num_productos5, uint8_t total_sales, uint8_t cash_total) {
     char line1[32];
     char line2[32];
     char line3[32];
     char line4[32];
 
     // Convertir el número a cadena y concatenarlo con el texto
-    sprintf(line1, "B%u, P%u, U%u", num_productos1, num_productos2, num_productos3);
-    sprintf(line2, "Num prod2: %u", num_productos2);
-    sprintf(line3, "Num prod3: %u", num_productos3);
-    sprintf(line4, "Num prod4: %u", num_productos4);
+    sprintf(line1, "A%u, B%u, P%u", num_productos1, num_productos2, num_productos3);
+    sprintf(line2, "C%u, G%u", num_productos4, num_productos5);
+    sprintf(line3, "TotalSales: %u", total_sales);
+    sprintf(line4, "TotalCash: %u", cash_total);
+
+
 
     // Llamar a la función update_display con las cadenas generadas
     update_display(line1, line2, line3, line4);
 }
 
-
+/**
+ * @brief Muestra la información actual del producto en la pantalla OLED.
+ * 
+ * Esta función convierte los números relacionados con el producto actual 
+ * en cadenas de texto y las muestra en la pantalla OLED utilizando la función update_display.
+ * 
+ * @param num_productos1 Tipo del producto.
+ * @param num_productos2 Número del producto.
+ * @param num_productos3 Precio de venta del producto.
+ * @param num_productos4 Precio de compra del producto.
+ * 
+ * @return void
+ */
 void show_current_product(uint8_t num_productos1, uint8_t num_productos2, uint8_t num_productos3, uint8_t num_productos4) {
     char line1[32];
     char line2[32];
