@@ -9,7 +9,10 @@
 #include "pico/time.h"
 #include "keypad.h"
 
-
+//aaa
+volatile bool password_correct = false;
+volatile bool password_finish = false;
+volatile bool keyflag = false;
 const char matrix_keys[KEYPAD_ROWS][KEYPAD_COLUMNS] = {
     {'1', '2', '3', 'A'},
     {'4', '5', '6', 'B'},
@@ -19,17 +22,17 @@ const char matrix_keys[KEYPAD_ROWS][KEYPAD_COLUMNS] = {
 
 const uint gpio_rows[] = {2, 3, 4, 5};
 const uint gpio_columns[] = {6, 7, 8, 9};
-uint8_t sequence = 0;
+volatile uint8_t sequence = 0;
 volatile uint8_t aux =0;
-volatile bool keyflag = false;
-const uint32_t DEBOUNCE_TIME_US = 500000;
-uint64_t last_press_time = 0; ///< Tiempo de la última pulsación del teclado
+
+const uint32_t DEBOUNCE_TIME_US = 200000;
+//uint64_t last_press_time = 0; ///< Tiempo de la última pulsación del teclado
 uint8_t letter_index = 0; ///< Índice para el texto ingresado por el usuario
 volatile char current_key = '\0'; ///< Tecla actual presionada en el teclado matricial
 char text_input[MAX_LETTERS_PRESSED] = "0000"; ///< Almacena el texto ingresado por el usuario
 char password[] = "1234"; ///< Contraseña de 4 dígitos 
-volatile bool password_correct = false;
-volatile bool password_finish = false;
+
+
 
 
 void gpio_callback(uint gpio, uint32_t events) {
@@ -69,32 +72,73 @@ void timer_sequence_handler(void){
     
 }
 
- void analyze_text_input() {
+ void analyze_letter_input() {
+    printf("ESTOY EN ANALIZE TEXT INPUT\n");
     printf("Texto ingresado: %s\n", text_input);
     if (text_input[0] == 'A') {
-            uint16_t amplitud = atoi(&text_input[1]);
-        if (amplitud >= 100 && amplitud <= 2500) {
-            printf("Configuracion ingresada: Amplitud -> %d\n", amplitud);
-        } else {
-            printf("Configuracion de amplitud invalida\n");
-        }
+        printf("Venta");
+         
     } else if (text_input[0] == 'B') {
-            uint16_t offset = atoi(&text_input[1]);
-        if (offset >= 50 && offset <= 1250) {
-            printf("Configuracion ingresada: Offset -> %d\n", offset);
-        } else {
-            printf("Configuracion de offset invalida\n");
-        }
-       } else if (text_input[0] == 'C') {
-        printf("Configuracion ingresada: Frecuencia -> %d\n");
-       }
+        printf("Compra");
+        
+    } else if (text_input[0] == 'D') {
+        printf("Reincio");
+    }
 
     letter_index = 0;
     memset(text_input, 0, sizeof(text_input));   ///< Limpiar el arreglo de letras presionadas
  }
 
+
+
+void analyze_password() {
+    // Imprimir las cadenas para depuración
+    printf("ESTOY EN ANALIZE PASSWORD\n");
+    // Usar strncmp para comparar las cadenas
+    if (strncmp(text_input, password, 4) == 0) {
+        password_correct = true;
+        printf("Contraseña Correcta\n");
+    } else {
+        password_correct = false;
+        printf("Contraseña Incorrecta\n");
+    }
+    password_finish = true;
+    letter_index = 0;
+    memset(text_input, 0, sizeof(text_input)); // Limpiar el arreglo de letras presionadas
+}
+
+
+void keypress(uint8_t aux, uint8_t state) {
+    // Verificar el debounce
+    static uint64_t last_press_time = 0;
+    if (time_us_64() - last_press_time < DEBOUNCE_TIME_US) {
+        return;
+    }
+    
+    for (int col = 0; col < 4; col++) { 
+        if (gpio_columns[col] == aux) {
+            current_key = matrix_keys[sequence][col];
+            text_input[letter_index] = current_key;
+            printf("Tecla presionada: %c\n", current_key);
+            letter_index = letter_index + 1; 
+            if (state == 1) {
+                if (letter_index == 4) { 
+                    analyze_password();
+                }
+            } else if (state == 3) {
+                if (letter_index == 1) { 
+                    analyze_letter_input();
+                }
+            }
+            last_press_time = time_us_64();  
+        }
+        
+    }
+}
+
+
  
-void keypress(uint aux) {
+/*void keypress(uint8_t aux) {
     // Verificar el debounce
     if (time_us_64() - last_press_time < DEBOUNCE_TIME_US) {
         return;
@@ -113,23 +157,6 @@ void keypress(uint aux) {
         }
         
     }
-}
+}*/
 
 
-void analyze_password() {
-    // Imprimir las cadenas para depuración
-    printf("Password ingresada: %s\n", text_input);
-    printf("Password esperada: %s\n", password);
-
-    // Usar strncmp para comparar las cadenas
-    if (strncmp(text_input, password, 4) == 0) {
-        password_correct = true;
-        printf("Contraseña Correcta\n");
-    } else {
-        password_correct = false;
-        printf("Contraseña Incorrecta\n");
-    }
-    password_finish = true;
-    letter_index = 0;
-    memset(text_input, 0, sizeof(text_input)); // Limpiar el arreglo de letras presionadas
-}

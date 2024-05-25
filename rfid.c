@@ -19,7 +19,7 @@ const size_t expectedUIDLength = sizeof(expectedUID) / sizeof(expectedUID[0]);
 
 void readBlock(MFRC522Ptr_t mfrc,uint8_t block,uint8_t bufferRead[18]){
     uint8_t len=18;
-    printf("Coloque la tarjeta\n\r");
+    printf("Coloque el tag\n\r");
     while (!PICC_IsNewCardPresent(mfrc));
     printf("Leyendo\n\r");
     PICC_ReadCardSerial(mfrc);
@@ -82,14 +82,14 @@ bool read_card_id(MFRC522Ptr_t mfrc) {
     printf("Probando id\n\r");
     while (!PICC_IsNewCardPresent(mfrc));
     PICC_ReadCardSerial(mfrc);
-    printf("Card UID: ");
+    /*printf("Card UID: ");
     for (uint8_t i = 0; i < mfrc->uid.size; i++) {
         printf("%02X", mfrc->uid.uidByte[i]);
         if (i < mfrc->uid.size - 1) {
             printf(":");
         }
     }
-    printf("\n");
+    printf("\n");*/
     bool isExpectedUID = compareUIDs(mfrc->uid.uidByte, mfrc->uid.size, expectedUID, expectedUIDLength);
     if (isExpectedUID) {
         printf("UID correcto\n\r");

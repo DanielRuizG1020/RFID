@@ -39,7 +39,7 @@
 
 // 400 is usual, but often these can be overclocked to improve display response.
 // Tested at 1000 on both 32 and 84 pixel height devices and it worked.
-#define SSD1306_I2C_CLK             1000
+#define SSD1306_I2C_CLK             400
 //#define SSD1306_I2C_CLK             1000
 
 
@@ -505,9 +505,37 @@ void update_display(const char *line1, const char *line2, const char *line3, con
     render(buf, &frame_area);
 }
 
+void show_current_inventory(uint8_t num_productos1, uint8_t num_productos2, uint8_t num_productos3, uint8_t num_productos4) {
+    char line1[32];
+    char line2[32];
+    char line3[32];
+    char line4[32];
+
+    // Convertir el número a cadena y concatenarlo con el texto
+    sprintf(line1, "B%u, P%u, U%u", num_productos1, num_productos2, num_productos3);
+    sprintf(line2, "Num prod2: %u", num_productos2);
+    sprintf(line3, "Num prod3: %u", num_productos3);
+    sprintf(line4, "Num prod4: %u", num_productos4);
+
+    // Llamar a la función update_display con las cadenas generadas
+    update_display(line1, line2, line3, line4);
+}
 
 
+void show_current_product(uint8_t num_productos1, uint8_t num_productos2, uint8_t num_productos3, uint8_t num_productos4) {
+    char line1[32];
+    char line2[32];
+    char line3[32];
+    char line4[32];
 
+    // Convertir el número a cadena y concatenarlo con el texto
+    sprintf(line1, "Tipo: %u", num_productos1);
+    sprintf(line2, "Numero: %u", num_productos2);
+    sprintf(line3, "PrecioV: %u", num_productos3);
+    sprintf(line4, "PrecioC: %u", num_productos4);
 
+    // Llamar a la función update_display con las cadenas generadas
+    update_display(line1, line2, line3, line4);
+}
 
 #endif

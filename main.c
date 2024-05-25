@@ -14,16 +14,12 @@
 #include "rfid.h"
 #include "oled.h"
 #include "keypad.h"
+#include "main.h"
 
 // Custom libraries
 #define RST_PIN 0// Pin 9 para el reset del RC522
 #define SS_PIN  17 // Pin 10 para el SS (SDA) del RC522
 #define SPI_PORT 0
-uint8_t state=0;
-uint8_t bufferRead[18]; // Buffer para guardar la lectura
-uint8_t bufferWrite[16] = {0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-                            0x01, 0x01, 0x01, 0x01, 0x01, 0x01,
-                            0x01, 0x01, 0x01, 0x01}; // Buffer de escritura
 
 // Main function
 int main() {
@@ -31,9 +27,9 @@ int main() {
     stdio_init_all();
     sleep_ms(7000);
     setup_keyboard();
-    bool id_target;
     timer_sequence_handler();
     timer_display_handler();
+
     //initialize_display_and_render_text();
      // Print initialization message
     printf("Probando RFID\n");
@@ -52,31 +48,40 @@ int main() {
                 break;
             case 1:
                 if (keyflag == 1) {
-                    keypress(aux);
                     keyflag = false;
+                    keypress(aux,state);
                     if (password_correct == true && password_finish == true){
                         state++;
-                        keyflag = false;
+                        password_correct = false;
+                        password_finish = false;
                     }
                     else if(password_correct == false && password_finish == true) {
-                        keyflag = false;
                         password_finish = false;
                         password_correct = false;
                         state = 0;
-                    }
-                    
+                    }    
                 }
                 break;
 
             case 2:
-                printf("cambio de estado");
+                readBlock(mfrc522, 1, bufferRead);
+                delay(2000);
+                state++;
+                keyflag = false;
+            case 3:
+                if (keyflag == 1) {
+                    keyflag = false;
+                    keypress(aux,state);
+                    
+                } 
+                break;   
             // Agrega más casos según sea necesario
             default:
                 // Manejo de estado desconocido, si es necesario
                 break;
         }
 
-        tight_loop_contents(); 
+        tight_loop_contents(); // Esto asegura que el bucle sea lo más eficiente posible
     }
 
     return 0;
@@ -84,19 +89,3 @@ int main() {
 
 
 
-void timer_display_handler(void){
-    // Interrupt acknowledge
-    hw_clear_bits(&timer_hw->intr, 1u << TIMER_IRQ_1);
-     // Setting the IRQ handler
-    irq_set_exclusive_handler(TIMER_IRQ_1, timer_display_handler);
-    irq_set_enabled(TIMER_IRQ_1, true);
-    hw_set_bits(&timer_hw->inte, 1u << TIMER_IRQ_1); 
-    if(state != 2){
-    timer_hw->alarm[1] = (uint32_t)(time_us_64() + 1000000);
-    initialize_display_and_render_text(); 
-    }
-    else{
-        update_display("Producto", "Cantidad", "PrecioCompra", "PrecioVenta");
-    }
-      
-}
